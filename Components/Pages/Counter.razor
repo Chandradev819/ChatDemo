@@ -1,0 +1,61 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+@using ChatDemo.Service
+@inject EntraFoundryChatService FoundryService
+
+<PageTitle>Foundry Counter Test</PageTitle>
+
+<h1>Microsoft Foundry Test</h1>
+
+<p>Click the button to send a request to your deployed AI model.</p>
+
+<button class="btn btn-primary"
+        @onclick="CallFoundry"
+        disabled="@isLoading">
+    @(isLoading ? "Calling Foundry..." : "Call Microsoft Foundry")
+</button>
+
+@if (!string.IsNullOrWhiteSpace(answer))
+{
+    <div class="alert alert-success mt-3">
+        <strong>AI Response</strong>
+        <p style="white-space: pre-wrap">@answer</p>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger mt-3">
+        <strong>Request failed</strong>
+        <p>@errorMessage</p>
+    </div>
+}
+
+@code {
+    private string answer = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isLoading;
+
+    private async Task CallFoundry()
+    {
+        isLoading = true;
+        answer = string.Empty;
+        errorMessage = string.Empty;
+
+        try
+        {
+            answer = await FoundryService.AskAsync(
+                "Explain Microsoft Foundry in simple words.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex);
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

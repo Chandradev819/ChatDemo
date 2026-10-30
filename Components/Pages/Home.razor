@@ -1,0 +1,79 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using ChatDemo.Service
+
+@inject FoundryChatService ChatService
+
+<PageTitle>AI Assistant</PageTitle>
+
+<h1>Microsoft Foundry AI Assistant</h1>
+
+<p>
+    Ask a question and get a response from your deployed AI model.
+</p>
+
+<div class="mb-3">
+    <label for="question" class="form-label">
+        Your question
+    </label>
+    <textarea id="question" class="form-control" rows="4" @bind="question" disabled="@isLoading"></textarea>
+</div>
+
+<button class="btn btn-primary" @onclick="AskAI" disabled="@isLoading">
+    @(isLoading ? "Getting response..." : "Ask AI")
+</button>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger mt-3">
+        @errorMessage
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(answer))
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            AI Response
+        </div>
+
+        <div class="card-body">
+            <p style="white-space: pre-wrap">@answer</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string question = string.Empty;
+    private string answer = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isLoading;
+
+    private async Task AskAI()
+    {
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            errorMessage = "Please enter a question.";
+            return;
+        }
+
+        isLoading = true;
+        answer = string.Empty;
+        errorMessage = string.Empty;
+
+        try
+        {
+            answer = await ChatService.AskAsync(question);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception on the server.
+            Console.Error.WriteLine(ex);
+            errorMessage = "Unable to get a response. Check the server logs and Azure AI configuration.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
